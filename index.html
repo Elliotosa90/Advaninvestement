@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrimeInvest - Investment Platform</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', -apple-system, Helvetica, Arial, sans-serif;
+            background: #0a0e1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f35 50%, #0d1b2a 100%);
+            padding: 20px;
+        }
+        .auth-box {
+            background: #111827;
+            border: 1px solid #1e293b;
+            border-radius: 16px;
+            padding: 40px 32px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .auth-box .logo { text-align: center; margin-bottom: 30px; }
+        .auth-box .logo h1 { font-size: 28px; color: #22c55e; font-weight: 700; }
+        .auth-box .logo span { color: #e0e0e0; }
+        .auth-box .logo p { font-size: 13px; color: #64748b; margin-top: 4px; }
+        .auth-box h2 { font-size: 20px; margin-bottom: 22px; color: #f1f5f9; }
+        .auth-box input, .auth-box select {
+            width: 100%;
+            padding: 13px 16px;
+            margin-bottom: 13px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: border 0.2s;
+        }
+        .auth-box input:focus, .auth-box select:focus { border-color: #22c55e; }
+        .auth-box select option { background: #1e293b; }
+        .auth-box .btn-primary {
+            width: 100%;
+            padding: 13px;
+            background: #22c55e;
+            color: #0a0e1a;
+            font-weight: 700;
+            font-size: 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 4px;
+        }
+        .auth-box .btn-primary:hover { background: #16a34a; }
+        .auth-box .link { text-align: center; margin-top: 18px; font-size: 13px; color: #64748b; }
+        .auth-box .link a { color: #22c55e; cursor: pointer; text-decoration: none; }
+        .auth-box .link a:hover { text-decoration: underline; }
+        .auth-box .error { color: #ef4444; font-size: 13px; margin-bottom: 12px; text-align: center; }
+        .auth-box .success { color: #22c55e; font-size: 13px; margin-bottom: 12px; text-align: center; }
+        .auth-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #1e293b;
+        }
+        .auth-tabs div {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #64748b;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+        .auth-tabs div.active { color: #22c55e; border-bottom-color: #22c55e; }
+
+        .admin-hidden-link { text-align: center; margin-top: 24px; padding-top: 18px; border-top: 1px solid #1a1f35; }
+        .admin-hidden-link a { color: #1e293b; font-size: 11px; text-decoration: none; cursor: pointer; transition: color 0.3s; user-select: none; }
+        .admin-hidden-link a:hover { color: #334155; }
+
+        .admin-login-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .admin-login-overlay.active { display: flex; }
+        .admin-login-box {
+            background: #111827;
+            border: 1px solid #1e293b;
+            border-radius: 14px;
+            padding: 32px;
+            width: 100%;
+            max-width: 420px;
+        }
+        .admin-login-box h3 { font-size: 18px; color: #f1f5f9; margin-bottom: 6px; }
+        .admin-login-box p.sub { font-size: 12px; color: #64748b; margin-bottom: 18px; }
+        .admin-login-box input {
+            width: 100%;
+            padding: 11px 14px;
+            margin-bottom: 12px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+        .admin-login-box input:focus { border-color: #3b82f6; }
+        .admin-login-box .btn-admin { width: 100%; padding: 11px; background: #3b82f6; color: #fff; font-weight: 600; font-size: 14px; border: none; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
+        .admin-login-box .btn-admin:hover { background: #2563eb; }
+        .admin-login-box .admin-error { color: #ef4444; font-size: 13px; margin-bottom: 10px; text-align: center; }
+        .admin-login-box .close-admin { float: right; background: none; border: none; color: #64748b; font-size: 20px; cursor: pointer; padding: 0 4px; }
+        .admin-login-box .close-admin:hover { color: #e0e0e0; }
+
+        .dashboard { display: none; }
+        .dashboard.active { display: block; }
+
+        .topbar {
+            background: #111827;
+            border-bottom: 1px solid #1e293b;
+            padding: 14px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .topbar .brand { font-size: 20px; font-weight: 700; color: #22c55e; }
+        .topbar .brand span { color: #e0e0e0; }
+        .topbar .user-menu { display: flex; align-items: center; gap: 16px; }
+        .topbar .user-menu .username { font-size: 14px; color: #94a3b8; }
+        .topbar .user-menu button { padding: 8px 18px; background: #1e293b; color: #e0e0e0; border: 1px solid #334155; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+        .topbar .user-menu button:hover { background: #334155; }
+        .topbar .user-menu .logout-btn { background: transparent; border-color: #ef4444; color: #ef4444; }
+        .topbar .user-menu .logout-btn:hover { background: #ef4444; color: #fff; }
+
+        .dashboard-content { max-width: 1100px; margin: 0 auto; padding: 24px; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: #111827; border: 1px solid #1e293b; border-radius: 12px; padding: 20px; }
+        .stat-card .label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        .stat-card .value { font-size: 26px; font-weight: 700; color: #f1f5f9; }
+        .stat-card .green { color: #22c55e; }
+        .stat-card .status-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: 600; }
+        .status-badge.active { background: #065f4633; color: #22c55e; }
+        .status-badge.frozen { background: #5f4a1e33; color: #facc15; }
+        .status-badge.closed { background: #5f1e1e33; color: #ef4444; }
+
+        .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 24px; }
+        .quick-action { background: #111827; border: 1px solid #1e293b; border-radius: 10px; padding: 16px 20px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .quick-action:hover { border-color: #22c55e; transform: translateY(-2px); }
+        .quick-action .icon { font-size: 28px; margin-bottom: 6px; }
+        .quick-action h3 { font-size: 14px; color: #e0e0e0; margin-bottom: 2px; }
+        .quick-action p { font-size: 12px; color: #64748b; }
+        .quick-action.disabled { opacity: 0.5; cursor: not-allowed; }
+        .quick-action.disabled:hover { border-color: #1e293b; transform: none; }
+
+        .section-title { font-size: 18px; font-weight: 600; color: #f1f5f9; margin-bottom: 14px; margin-top: 24px; }
+        .section-title:first-child { margin-top: 0; }
+        .table-wrap { background: #111827; border: 1px solid #1e293b; border-radius: 12px; overflow: hidden; margin-bottom: 24px; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        table th { background: #1a1f35; text-align: left; padding: 12px 16px; color: #94a3b8; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #1e293b; }
+        table td { padding: 12px 16px; border-bottom: 1px solid #1a1f35; }
+        table tr:last-child td { border-bottom: none; }
+        table tr:hover td { background: #0f172a; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .badge.deposit { background: #065f4633; color: #22c55e; }
+        .badge.profit { background: #1e3a5f33; color: #60a5fa; }
+        .badge.withdraw { background: #5f1e1e33; color: #ef4444; }
+        .badge.pending { background: #5f4a1e33; color: #facc15; }
+        .badge.approved { background: #065f4633; color: #22c55e; }
+        .badge.declined { background: #5f1e1e33; color: #ef4444; }
+        .badge.referral { background: #4a1a5f33; color: #c084fc; }
+        .badge.transferred { background: #065f4633; color: #22c55e; }
+        .badge.failed { background: #5f1e1e33; color: #ef4444; }
+        .badge.active { background: #065f4633; color: #22c55e; }
+        .badge.frozen { background: #5f4a1e33; color: #facc15; }
+        .badge.closed { background: #5f1e1e33; color: #ef4444; }
+        .amount-green { color: #22c55e; font-weight: 600; }
+        .amount-red { color: #ef4444; font-weight: 600; }
+        .amount-yellow { color: #facc15; font-weight: 600; }
+        .amount-purple { color: #c084fc; font-weight: 600; }
+
+        .admin-section { background: #111827; border: 1px solid #1e293b; border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+        .admin-section h3 { font-size: 16px; color: #f1f5f9; margin-bottom: 16px; }
+        .admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; }
+        .admin-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 10px; padding: 16px; }
+        .admin-card .user-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .admin-card .user-header h4 { font-size: 15px; color: #f1f5f9; }
+        .admin-card .user-detail { font-size: 13px; color: #94a3b8; margin-bottom: 3px; }
+        .admin-card .user-detail strong { color: #e0e0e0; }
+        .admin-card .admin-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+        .admin-card .admin-actions input, .admin-card .admin-actions select { padding: 6px 10px; background: #1e293b; border: 1px solid #334155; border-radius: 4px; color: #fff; font-size: 12px; width: 100px; }
+        .admin-card .admin-actions select { width: auto; }
+        .admin-card .admin-actions select option { background: #1e293b; }
+        .admin-card .admin-actions button { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; }
+        .admin-card .admin-actions button.rst-btn { background: #facc15; color: #0a0e1a; }
+        .admin-card .admin-actions button.rst-btn:hover { background: #eab308; }
+        .btn-green { background: #22c55e; color: #0a0e1a; }
+        .btn-green:hover { background: #16a34a; }
+        .btn-blue { background: #3b82f6; color: #fff; }
+        .btn-blue:hover { background: #2563eb; }
+        .btn-red { background: #ef4444; color: #fff; }
+        .btn-red:hover { background: #dc2626; }
+        .btn-yellow { background: #facc15; color: #0a0e1a; }
+        .btn-yellow:hover { background: #eab308; }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: #111827; border: 1px solid #1e293b; border-radius: 14px; padding: 28px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+        .modal h3 { font-size: 18px; color: #f1f5f9; margin-bottom: 16px; }
+        .modal input, .modal select { width: 100%; padding: 11px 14px; margin-bottom: 12px; background: #1e293b; border: 1px solid #334155; border-radius: 6px; color: #fff; font-size: 14px; outline: none; }
+        .modal input:focus, .modal select:focus { border-color: #22c55e; }
+        .modal select option { background: #1e293b; }
+        .modal .modal-actions { display: flex; gap: 10px; margin-top: 6px; }
+        .modal .modal-actions button { flex: 1; padding: 11px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; }
+        .modal .modal-actions .cancel { background: #1e293b; color: #94a3b8; }
+        .modal .modal-actions .cancel:hover { background: #334155; }
+        .modal .small-text { font-size: 12px; color: #64748b; margin-bottom: 10px; }
+
+        .hidden { display: none !important; }
+        .tab-buttons { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .tab-buttons button { padding: 8px 20px; background: #1e293b; border: 1px solid #334155; border-radius: 6px; color: #94a3b8; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; }
+        .tab-buttons button.active { background: #22c55e33; border-color: #22c55e; color: #22c55e; }
+        .tab-buttons button:hover { border-color: #22c55e; }
+
+        .referral-box {
+            background: linear-gradient(135deg, #1a1f35, #111827);
+            border: 1px solid #3b82f633;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 18px;
+        }
+        .referral-box .r-label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+        .referral-box .r-code { font-size: 22px; font-weight: 700; color: #60a5fa; margin: 6px 0; }
+        .referral-box .r-link { font-size: 13px; color: #3b82f6; word-break: break-all; cursor: pointer; }
+        .referral-box .r-link:hover { text-decoration: underline; }
+
+        .reset-section { display: none; margin-top: 12px; padding: 12px; background: #0f172a; border-radius: 8px; border: 1px solid #1e293b; }
+        .reset-section.show { display: block; }
+
+        .transfer-status { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+        .transfer-status.pending { background: #5f4a1e33; color: #facc15; }
+        .transfer-status.success { background: #065f4633; color: #22c55e; }
+        .transfer-status.failed { background: #5f1e1e33; color: #ef4444; }
+        .transfer-status.otp { background: #1e3a5f33; color: #60a5fa; }
+
+        .otp-input { width: 180px !important; letter-spacing: 8px; font-size: 24px !important; text-align: center; }
+
+        @media (max-width: 640px) {
+            .auth-box { padding: 24px 18px; }
+            .topbar { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .admin-grid { grid-template-columns: 1fr; }
+            .dashboard-content { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- AUTH CONTAINER -->
+<div id="authContainer" class="auth-container">
+    <div class="auth-box">
+        <div class="logo">
+            <h1>Prime<span>Invest</span></h1>
+            <p>Secure Investment Platform</p>
+        </div>
+        <div class="auth-tabs">
+            <div class="active" onclick="showAuthTab('login')">Login</div>
+            <div onclick="showAuthTab('register')">Register</div>
+        </div>
+        <div id="loginForm">
+            <h2>Welcome Back</h2>
+            <div id="loginError" class="error"></div>
+            <input type="text" id="loginUsername" placeholder="Username" autocomplete="off">
+            <input type="password" id="loginPassword" placeholder="Password">
+            <button class="btn-primary" onclick="userLogin()">Sign In</button>
+            <div class="link">
+                <a href="#" onclick="event.preventDefault();showAuthTab('register');">Don't have an account? Register</a>
+            </div>
+            <div class="link" style="margin-top:6px;">
+                <a href="#" onclick="event.preventDefault();toggleResetPassword();">Forgot password?</a>
+            </div>
+            <div id="resetSection" class="reset-section">
+                <p style="font-size:13px;color:#64748b;margin-bottom:10px;">Enter your username below. The admin will reset your password — contact them directly.</p>
+                <input type="text" id="resetUsername" placeholder="Enter your username">
+                <button class="btn-primary" onclick="resetPasswordRequest()">Notify Admin</button>
+                <div id="resetMsg" style="font-size:13px;margin-top:8px;text-align:center;"></div>
+            </div>
+        </div>
+        <div id="registerForm" class="hidden">
+            <h2>Create Account</h2>
+            <div id="registerError" class="error"></div>
+            <div id="registerSuccess" class="success"></div>
+            <input type="text" id="regUsername" placeholder="Choose a username" autocomplete="off">
+            <input type="text" id="regFullname" placeholder="Full name">
+            <input type="email" id="regEmail" placeholder="Email address">
+            <input type="text" id="regPhone" placeholder="Phone number (optional)">
+            <input type="password" id="regPassword" placeholder="Password (min 4 characters)">
+            <input type="text" id="regReferral" placeholder="Referral code (optional)" autocomplete="off">
+            <button class="btn-primary" onclick="userRegister()">Create Account</button>
+            <div class="link">
+                <a href="#" onclick="event.preventDefault();showAuthTab('login');">Already have an account? Login</a>
+            </div>
+        </div>
+        <div class="admin-hidden-link">
+            <a onclick="openAdminLogin()">●</a>
+        </div>
+    </div>
+</div>
+
+<!-- ADMIN LOGIN OVERLAY -->
+<div id="adminLoginOverlay" class="admin-login-overlay">
+    <div class="admin-login-box">
+        <button class="close-admin" onclick="closeAdminLogin()">✕</button>
+        <h3>🔐 Admin Access</h3>
+        <p class="sub">Restricted area — authorized personnel only</p>
+        <div id="adminLoginError" class="admin-error"></div>
+        <input type="text" id="adminLoginUser" placeholder="Admin username" autocomplete="off">
+        <input type="password" id="adminLoginPass" placeholder="Admin password">
+        <button class="btn-admin" onclick="adminLogin()">Access Dashboard</button>
+    </div>
+</div>
+
+<!-- USER DASHBOARD -->
+<div id="userDashboard" class="dashboard">
+    <div class="topbar">
+        <div class="brand">Prime<span>Invest</span></div>
+        <div class="user-menu">
+            <span class="username" id="displayUsername">user</span>
+            <span id="userStatusBadge" class="status-badge active" style="font-size:11px;padding:3px 10px;border-radius:10px;">Active</span>
+            <button onclick="userLogout()" class="logout-btn">Logout</button>
+        </div>
+    </div>
+    <div class="dashboard-content">
+        <div class="stats-grid">
+            <div class="stat-card"><div class="label">Balance (NGN)</div><div class="value green" id="userBalance">₦0.00</div></div>
+            <div class="stat-card"><div class="label">Total Invested</div><div class="value" id="userInvested">₦0.00</div></div>
+            <div class="stat-card"><div class="label">Total Profit</div><div class="value green" id="userProfit">₦0.00</div></div>
+            <div class="stat-card"><div class="label">Referral Bonus</div><div class="value" style="color:#c084fc;font-size:22px;" id="userReferralBonus">₦0.00</div></div>
+            <div class="stat-card"><div class="label">Plan</div><div class="value" id="userPlan" style="font-size:20px;">-</div></div>
+        </div>
+
+        <div class="referral-box">
+            <div class="r-label">Your Referral Link</div>
+            <div class="r-code" id="refCode">-</div>
+            <div class="r-link" id="refLink" onclick="copyRefLink()">Click to copy referral link</div>
+        </div>
+
+        <div class="quick-actions">
+            <div class="quick-action" onclick="showDepositModal()"><div class="icon">💰</div><h3>Deposit</h3><p>Min ₦2,500 — card/bank transfer</p></div>
+            <div class="quick-action" id="withdrawBtn" onclick="showWithdrawModal()"><div class="icon">💸</div><h3>Withdraw</h3><p>Min ₦1,000 — Fridays only</p></div>
+            <div class="quick-action" onclick="showProfileModal()"><div class="icon">👤</div><h3>Profile</h3><p>View account details</p></div>
+            <div class="quick-action" onclick="refreshUserData()"><div class="icon">🔄</div><h3>Refresh</h3><p>Update account data</p></div>
+        </div>
+
+        <div class="section-title" id="interestStatus" style="font-size:13px;color:#60a5fa;margin-bottom:8px;"></div>
+
+        <div class="section-title">Transaction History</div>
+        <div class="tab-buttons">
+            <button class="active" onclick="showTxTab('all')">All</button>
+            <button onclick="showTxTab('deposits')">Deposits</button>
+            <button onclick="showTxTab('withdrawals')">Withdrawals</button>
+            <button onclick="showTxTab('profits')">Profits</button>
+            <button onclick="showTxTab('referrals')">Referrals</button>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Status</th><th>Details</th></tr></thead>
+                <tbody id="userTransactions"></tbody>
+            </table>
+        </div>
+
+        <!-- ADMIN SECTION -->
+        <div id="adminSection" class="hidden">
+            <div class="section-title" style="color:#22c55e;">⚙ Admin Dashboard — Full Control</div>
+
+            <div class="admin-section">
+                <h3>⚙️ Platform Settings</h3>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+                    <div>
+                        <label style="font-size:12px;color:#64748b;">Daily Interest Rate (%)</label>
+                        <input type="number" id="adminInterestRate" step="0.1" min="0" style="padding:8px 12px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#fff;width:100px;font-size:14px;">
+                    </div>
+                    <button onclick="adminUpdateInterest()" class="btn-blue" style="padding:10px 20px;margin-top:12px;">Set</button>
+                    <div style="font-size:12px;color:#94a3b8;margin-top:12px;">
+                        💡 Current: <span id="currentInterestDisplay">2%</span> daily
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-section">
+                <h3>Withdrawal Requests (Pending)</h3>
+                <div id="pendingWithdrawals"></div>
+            </div>
+
+            <div class="admin-section">
+                <h3>💳 Paystack Settings</h3>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+                    <input type="text" id="adminPaystackPublic" placeholder="Paystack Public Key (pk_...)" style="padding:10px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#fff;flex:2;min-width:200px;">
+                    <input type="password" id="adminPaystackSecret" placeholder="Paystack Secret Key (sk_...)" style="padding:10px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#fff;flex:2;min-width:200px;">
+                    <button onclick="adminSavePaystackKeys()" class="btn-yellow" style="padding:10px 20px;">Save Keys</button>
+                </div>
+                <div id="paystackMsg" style="font-size:12px;"></div>
+                <div style="margin-top:10px;padding:12px;background:#0f172a;border:1px solid #1e293b;border-radius:8px;font-size:12px;color:#94a3b8;">
+                    <strong>🔑 Test Keys are pre-loaded.</strong> Replace with live keys when ready.<br>
+                    <strong>💰 Important:</strong> Paystack balance must have sufficient funds for transfers.
+                </div>
+            </div>
+
+            <div class="admin-section">
+                <h3>All Users</h3>
+                <div id="adminUserCards" class="admin-grid"></div>
+            </div>
+
+            <div class="admin-section">
+                <h3>Create New User</h3>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                    <input type="text" id="adminNewUser" placeholder="Username" style="padding:10px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#fff;flex:1;min-width:120px;">
+                    <input type="text" id="adminNewPass" placeholder="Password" style="padding:10px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#fff;flex:1;min-width:120px;">
+                    <input type="text" id="adminNewName" placeholder="Full name" style="padding:10px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#fff;flex:1;min-width:120px;">
+                    <button onclick="adminCreateUser()" class="btn-green" style="padding:10px 20px;">➕ Create</button>
+                </div>
+                <div id="adminCreateMsg" style="margin-top:8px;font-size:13px;color:#22c55e;"></div>
+            </div>
+
+            <div class="admin-section">
+                <h3>🔑 Change Admin Password</h3>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+                    <input type="password" id="adminCurrentPass" placeholder="Current password" style="padding:10px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#fff;flex:1;min-width:120px;">
+                    <input type="password" id="adminNewPassInput" placeholder="New password" style="padding:10px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#fff;flex:1;min-width:120px;">
+                    <button onclick="changeAdminPassword()" class="btn-blue" style="padding:10px 20px;">Update</button>
+                </div>
+                <div id="changePassMsg" style="font-size:13px;"></div>
+            </div>
+
+            <div class="admin-section">
+                <h3>System Actions</h3>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                    <button onclick="adminPayAllProfits()" class="btn-blue" style="padding:10px 20px;">💰 Apply Daily Interest Now</button>
+                    <button onclick="adminResetAll()" class="btn-red" style="padding:10px 20px;">⚠️ Reset All User Data</button>
+                    <button onclick="refreshAdminData()" class="btn-yellow" style="padding:10px 20px;">🔄 Refresh</button>
+                </div>
+                <div id="adminActionMsg" style="margin-top:8px;font-size:13px;color:#60a5fa;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DEPOSIT MODAL -->
+<div id="depositModal" class="modal-overlay">
+    <div class="modal">
+        <h3>💰 Make a Deposit (NGN)</h3>
+        <div id="depositError" class="error"></div>
+        <div id="depositInfo" style="font-size:13px;color:#64748b;margin-bottom:12px;">
+            Minimum deposit: <strong>₦2,500</strong>. Pay with card, bank transfer, USSD, or mobile money via Paystack.
+        </div>
+        <input type="number" id="depositAmount" placeholder="Amount (₦)" min="2500" step="100">
+        <div class="modal-actions">
+            <button class="cancel" onclick="closeModal('depositModal')">Cancel</button>
+            <button class="btn-green" onclick="processDeposit()" style="background:#22c55e;color:#0a0e1a;">💳 Pay Now</button>
+        </div>
+    </div>
+</div>
+
+<!-- WITHDRAW MODAL -->
+<div id="withdrawModal" class="modal-overlay">
+    <div class="modal">
+        <h3>💸 Request Withdrawal</h3>
+        <div id="withdrawError" class="error"></div>
+        <div id="withdrawInfo" style="color:#facc15;font-size:13px;margin-bottom:12px;"></div>
+        <div class="small-text">Minimum withdrawal: <strong>₦1,000</strong>. Money sent automatically to your bank once approved.</div>
+        <input type="number" id="withdrawAmount" placeholder="Amount (₦)" min="1000" step="100">
+        <input type="text" id="withdrawAccountName" placeholder="Account name">
+        <input type="text" id="withdrawAccountNumber" placeholder="Account number (10 digits)" maxlength="10">
+        <select id="withdrawBank">
+            <option value="">Select bank</option>
+            <option value="Access Bank">Access Bank</option>
+            <option value="Citibank Nigeria">Citibank Nigeria</option>
+            <option value="Ecobank Nigeria">Ecobank</option>
+            <option value="Fidelity Bank">Fidelity Bank</option>
+            <option value="First Bank">First Bank</option>
+            <option value="FCMB">FCMB</option>
+            <option value="Globus Bank">Globus Bank</option>
+            <option value="GTBank">GTBank</option>
+            <option value="Heritage Bank">Heritage Bank</option>
+            <option value="Jaiz Bank">Jaiz Bank</option>
+            <option value="Keystone Bank">Keystone Bank</option>
+            <option value="Opay">Opay</option>
+            <option value="Moni Point">Moni Point</option>
+            <option value="Palm Pay">Palm Pay</option>
+            <option value="Polaris Bank">Polaris Bank</option>
+            <option value="Premium Trust Bank">Premium Trust Bank</option>
+            <option value="Providus Bank">Providus Bank</option>
+            <option value="Stanbic IBTC">Stanbic IBTC</option>
+            <option value="Standard Chartered">Standard Chartered</option>
+            <option value="Sterling Bank">Sterling Bank</option>
+            <option value="Suntrust Bank">Suntrust Bank</option>
+            <option value="Titan Trust">Titan Trust</option>
+            <option value="Union Bank">Union Bank</option>
+            <option value="UBA">UBA</option>
+            <option value="Unity Bank">Unity Bank</option>
+            <option value="Wema Bank">Wema Bank</option>
+            <option value="Zenith Bank">Zenith Bank</option>
+        </select>
+        <div class="modal-actions">
+            <button class="cancel" onclick="closeModal('withdrawModal')">Cancel</button>
+            <button class="btn-yellow" onclick="processWithdraw()" style="background:#facc15;color:#0a0e1a;">Submit Request</button>
+        </div>
+    </div>
+</div>
+
+<!-- OTP MODAL -->
+<div id="otpModal" class="modal-overlay">
+    <div class="modal" style="max-width:400px;">
+        <h3>🔐 Transfer OTP Required</h3>
+        <div id="otpInfo" style="font-size:13px;color:#64748b;margin-bottom:14px;">
+            An OTP has been sent to your Paystack-registered phone number. Enter it below to complete the transfer.
+        </div>
+        <input type="text" id="otpCode" class="otp-input" placeholder="------" maxlength="6" autocomplete="off">
+        <div id="otpError" class="error"></div>
+        <div class="modal-actions">
+            <button class="cancel" onclick="closeModal('otpModal')">Cancel</button>
+            <button class="btn-blue" onclick="submitOTP()" style="background:#3b82f6;color:#fff;">✓ Verify & Transfer</button>
+        </div>
+    </div>
+</div>
+
+<!-- RESET USER PASSWORD MODAL -->
+<div id="resetUserPassModal" class="modal-overlay">
+    <div class="modal" style="max-width:400px;">
+        <h3>🔑 Reset User Password</h3>
+        <div id="resetUserPassError" class="error"></div>
+        <div id="resetUserPassInfo" style="font-size:13px;color:#64748b;margin-bottom:12px;">
+            Enter the username and a new password.
+        </div>
+        <input type="text" id="resetUserPassUsername" placeholder="Username">
+        <input type="password" id="resetUserPassNew" placeholder="New password (min 4 chars)">
+        <div class="modal-actions">
+            <button class="cancel" onclick="closeModal('resetUserPassModal')">Cancel</button>
+            <button class="btn-yellow" onclick="adminResetUserPasswordSubmit()" style="background:#facc15;color:#0a0e1a;">Reset Password</button>
+        </div>
+    </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div id="profileModal" class="modal-overlay">
+    <div class="modal">
+        <h3>👤 Account Profile</h3>
+        <div id="profileInfo"></div>
+        <div class="modal-actions">
+            <button class="cancel" onclick="closeModal('profileModal')" style="width:100%;">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Paystack inline.js -->
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+// ============================================================
+// 🔴 REPLACE WITH YOUR JSONBin CREDENTIALS
+// ============================================================
+const JSONBIN_MASTER_KEY = "YOUR_MASTER_KEY_HERE";
+const JSONBIN_ACCESS_KEY = "";
+const JSONBIN_BIN_ID = "YOUR_BIN_ID_HERE";
+// ============================================================
+
+// ============================================================
+// ✅ TEST PAYSTACK KEYS (Pre-loaded for testing)
+//    Replace these with your live keys when ready
+// ============================================================
+const TEST_PAYSTACK_PUBLIC_KEY = "pk_test_027b0ed8bbf544d8b7b53e3a3e11576bef57b313";
+const TEST_PAYSTACK_SECRET_KEY = "sk_test_dafa94ebe7132f041ea4b3734f37cde248ce71c7";
+// ============================================================
+
+const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
+
+function getHeaders() {
+    const headers = { 'X-Master-Key': JSONBIN_MASTER_KEY };
+    if (JSONBIN_ACCESS_KEY) headers['X-Access-Key'] = JSONBIN_ACCESS_KEY;
+    return headers;
+}
+
+let appData = null;
+let currentUser = null;
+let currentUserData = null;
+let isAdminLoggedIn = false;
+let currentTxTab = 'all';
+let pendingTransfer = null;
+
+// Bank code map for Paystack transfers
+const BANK_CODES = {
+    'Access Bank': '044', 'Citibank Nigeria': '023', 'Ecobank': '050', 'Ecobank Nigeria': '050',
+    'Fidelity Bank': '070', 'Fidelity': '070', 'First Bank': '011', 'FCMB': '214',
+    'Globus Bank': '103', 'GTBank': '058', 'Heritage Bank': '030', 'Jaiz Bank': '301',
+    'Keystone Bank': '082', 'Opay': '100052', 'Moni Point': '50515', 'Palm Pay': '100033',
+    'Polaris Bank': '101', 'Premium Trust Bank': '105', 'Providus Bank': '101',
+    'Stanbic IBTC': '221', 'Standard Chartered': '068', 'Sterling Bank': '232',
+    'Suntrust Bank': '100', 'Titan Trust': '102', 'Union Bank': '032', 'UBA': '033',
+    'Unity Bank': '215', 'Wema Bank': '035', 'Zenith Bank': '057'
+};
+
+// ============================================================
+// DATABASE
+// ============================================================
+
+async function loadData() {
+    try {
+        const res = await fetch(JSONBIN_URL, { headers: getHeaders() });
+        if (!res.ok) return null;
+        const json = await res.json();
+        appData = json.record;
+        return appData;
+    } catch (e) { return null; }
+}
+
+async function saveData() {
+    try {
+        const res = await fetch(JSONBIN_URL, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', ...getHeaders() },
+            body: JSON.stringify(appData)
+        });
+        return res.ok;
+    } catch (e) { return false; }
+}
+
+function getPaystackSecret() {
+    if (appData.settings && appData.settings.paystackSecretKey) {
+        return appData.settings.paystackSecretKey;
+    }
+    return TEST_PAYSTACK_SECRET_KEY;
+}
+
+function getPaystackPublic() {
+    if (appData.settings && appData.settings.paystackPublicKey) {
+        return appData.settings.paystackPublicKey;
+    }
+    return TEST_PAYSTACK_PUBLIC_KEY;
+}
+
+// ============================================================
+// AUTH
+// ============================================================
+
+function showAuthTab(tab) {
+    document.querySelectorAll('.auth-tabs div').forEach(t => t.classList.remove('active'));
+    if (tab === 'login') {
+        document.getElementById('loginForm').classList.remove('hidden');
+        document.getElementById('registerForm').classList.add('hidden');
+        document.querySelector('.auth-tabs div:first-child').classList.add('active');
+    } else {
+        document.getElementById('loginForm').classList.add('hidden');
+        document.getElementById('registerForm').classList.remove('hidden');
+        document.querySelector('.auth-tabs div:last-child').classList.add('active');
+    }
+    ['loginError','registerError','registerSuccess'].forEach(id => document.getElementById(id).textContent = '');
+}
+
+function toggleResetPassword() {
+    const sec = document.getElementById('resetSection');
+    sec.classList.toggle('show');
+    document.getElementById('resetUsername').value = '';
+    document.getElementById('resetMsg').textContent = '';
+}
+
+function resetPasswordRequest() {
+    const u = document.getElementById('resetUsername').value.trim();
+    const msg = document.getElementById('resetMsg');
+    if (!u) { msg.textContent = '❌ Enter your username.'; msg.style.color = '#ef4444'; return; }
+    msg.textContent = '⚠️ Please contact the admin to reset your password.';
+    msg.style.color = '#facc15';
+}
+
+async function userLogin() {
+    const u = document.getElementById('loginUsername').value.trim();
+    const p = document.getElementById('loginPassword').value.trim();
+    const err = document.getElementById('loginError');
+    if (!u || !p) { err.textContent = '❌ Please enter username and password.'; return; }
+    await loadData();
+    if (!appData) { err.textContent = '❌ Failed to connect.'; return; }
+    const user = appData.users[u];
+    if (!user || user.password !== p) { err.textContent = '❌ Invalid credentials.'; return; }
+    if (user.status === 'closed') { err.textContent = '❌ Account closed.'; return; }
+    isAdminLoggedIn = false; currentUser = u; currentUserData = user;
+    await applyDailyInterest();
+    enterDashboard('user');
+}
+
+async function userRegister() {
+    const u = document.getElementById('regUsername').value.trim();
+    const fn = document.getElementById('regFullname').value.trim();
+    const em = document.getElementById('regEmail').value.trim();
+    const ph = document.getElementById('regPhone').value.trim();
+    const pw = document.getElementById('regPassword').value.trim();
+    const ref = document.getElementById('regReferral').value.trim();
+    const err = document.getElementById('registerError');
+    const suc = document.getElementById('registerSuccess');
+    if (!u || !fn || !em || !pw) { err.textContent = '❌ Fill all required fields.'; suc.textContent = ''; return; }
+    if (pw.length < 4) { err.textContent = '❌ Password minimum 4 characters.'; suc.textContent = ''; return; }
+    await loadData();
+    if (!appData) { err.textContent = '❌ Failed to connect.'; return; }
+    if (appData.users[u]) { err.textContent = '❌ Username taken.'; suc.textContent = ''; return; }
+    if (ref && !appData.users[ref]) { err.textContent = '❌ Invalid referral code.'; suc.textContent = ''; return; }
+    const now = new Date();
+    const ds = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    appData.users[u] = {
+        fullName: fn, email: em, phone: ph||'', password: pw, balance: 0, invested: 0,
+        profit: 0, referralBonus: 0, referralCode: u, referredBy: ref || '',
+        plan: 'Basic', status: 'active', createdAt: ds, lastInterestDate: '',
+        transactions: [], withdrawals: [], referrals: [], recipientCode: ''
+    };
+    await saveData();
+    err.textContent = ''; suc.textContent = '✅ Account created! Login now.';
+    ['regUsername','regFullname','regEmail','regPhone','regPassword','regReferral'].forEach(id => document.getElementById(id).value = '');
+}
+
+function userLogout() {
+    currentUser = null; currentUserData = null; isAdminLoggedIn = false;
+    document.getElementById('authContainer').classList.remove('hidden');
+    document.getElementById('userDashboard').classList.remove('active');
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
+}
+
+// ============================================================
+// INTEREST
+// ============================================================
+
+async function applyDailyInterest() {
+    if (!appData || !currentUser || !appData.users[currentUser]) return;
+    const user = appData.users[currentUser];
+    const rate = (appData.settings && appData.settings.interestRate) || 2;
+    const today = new Date().toDateString();
+    if (user.lastInterestDate === today) {
+        document.getElementById('interestStatus').textContent = '✅ Interest applied today already.';
+        return;
+    }
+    if (user.balance > 0 && user.status === 'active') {
+        const interest = user.balance * (rate / 100);
+        user.balance += interest;
+        user.profit += interest;
+        if (!user.transactions) user.transactions = [];
+        const now = new Date();
+        const ds = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        user.transactions.push({ date: ds, type: 'profit', amount: interest, description: `Daily interest ${rate}%` });
+        user.lastInterestDate = today;
+        appData.users[currentUser] = user;
+        await saveData();
+        document.getElementById('interestStatus').textContent = `✅ ${rate}% daily interest (₦${interest.toFixed(2)}) applied!`;
+    } else {
+        user.lastInterestDate = today;
+        appData.users[currentUser] = user;
+        await saveData();
+        document.getElementById('interestStatus').textContent = user.status !== 'active' ? '⚠️ Interest only applies to active accounts.' : 'ℹ️ No balance to apply interest on.';
+    }
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+
+function enterDashboard(type) {
+    document.getElementById('authContainer').classList.add('hidden');
+    document.getElementById('userDashboard').classList.add('active');
+    if (type === 'admin') {
+        document.getElementById('displayUsername').textContent = 'Admin';
+        document.getElementById('adminSection').classList.remove('hidden');
+        refreshAdminData();
+    } else {
+        document.getElementById('displayUsername').textContent = currentUserData.fullName || currentUser;
+        document.getElementById('adminSection').classList.add('hidden');
+        refreshUserData();
+    }
+}
+
+function showTxTab(tab) {
+    currentTxTab = tab;
+    document.querySelectorAll('.tab-buttons button').forEach(b => b.classList.remove('active'));
+    const btns = document.querySelectorAll('.tab-buttons button');
+    for (let b of btns) { if (b.textContent.toLowerCase().includes(tab)) b.classList.add('active'); }
+    refreshUserData();
+}
+
+async function refreshUserData() {
+    await loadData();
+    if (!appData || !appData.users[currentUser]) { alert('Session expired.'); userLogout(); return; }
+    currentUserData = appData.users[currentUser];
+    document.getElementById('userBalance').textContent = '₦' + currentUserData.balance.toFixed(2);
+    document.getElementById('userInvested').textContent = '₦' + currentUserData.invested.toFixed(2);
+    document.getElementById('userProfit').textContent = '₦' + currentUserData.profit.toFixed(2);
+    document.getElementById('userReferralBonus').textContent = '₦' + (currentUserData.referralBonus||0).toFixed(2);
+    document.getElementById('userPlan').textContent = currentUserData.plan;
+    const baseUrl = window.location.href.split('?')[0].split('#')[0];
+    document.getElementById('refCode').textContent = currentUser;
+    document.getElementById('refLink').textContent = `${baseUrl}?ref=${currentUser}`;
+    const badge = document.getElementById('userStatusBadge');
+    badge.textContent = currentUserData.status.charAt(0).toUpperCase() + currentUserData.status.slice(1);
+    badge.className = 'status-badge ' + currentUserData.status;
+    const wBtn = document.getElementById('withdrawBtn');
+    if (currentUserData.status === 'frozen') {
+        wBtn.classList.add('disabled');
+        wBtn.onclick = function() { alert('❌ Withdrawals disabled for frozen accounts.'); };
+    } else {
+        wBtn.classList.remove('disabled');
+        wBtn.onclick = function() { showWithdrawModal(); };
+    }
+    const allTxs = [];
+    (currentUserData.transactions||[]).forEach(tx => allTxs.push({...tx}));
+    (currentUserData.withdrawals||[]).forEach(w => {
+        let st = w.status;
+        if (w.transferStatus) st = w.transferStatus === 'success' ? 'transferred' : w.transferStatus;
+        allTxs.push({
+            date: w.date, type: 'withdraw', amount: -w.amount, status: st,
+            description: `→ ${w.bank} (${w.accountName})${w.transferRef ? ' [Ref: '+w.transferRef+']' : ''}`,
+            bank: w.bank, accountName: w.accountName, accountNumber: w.accountNumber
+        });
+    });
+    (currentUserData.referrals||[]).forEach(r => allTxs.push({
+        date: r.date, type: 'referral', amount: r.bonus, status: 'approved',
+        description: `Referral bonus from ${r.referee}`
+    }));
+    let filtered = allTxs;
+    if (currentTxTab === 'deposits') filtered = allTxs.filter(tx => tx.type === 'deposit');
+    else if (currentTxTab === 'withdrawals') filtered = allTxs.filter(tx => tx.type === 'withdraw');
+    else if (currentTxTab === 'profits') filtered = allTxs.filter(tx => tx.type === 'profit');
+    else if (currentTxTab === 'referrals') filtered = allTxs.filter(tx => tx.type === 'referral');
+    const tbody = document.getElementById('userTransactions');
+    if (!filtered.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#64748b;">No transactions found.</td></tr>';
+    } else {
+        filtered.sort((a,b) => new Date(b.date)-new Date(a.date));
+        tbody.innerHTML = filtered.map(tx => {
+            let bc = tx.type==='deposit'?'deposit':tx.type==='profit'?'profit':tx.type==='referral'?'referral':
+                     tx.status==='pending'?'pending':tx.status==='approved'?'approved':
+                     tx.status==='declined'?'declined':tx.status==='transferred'?'transferred':
+                     tx.status==='failed'?'failed':'withdraw';
+            const ac = (tx.type==='deposit'||tx.type==='profit'||tx.type==='referral')?'amount-green':
+                      (tx.status==='pending'||tx.status==='otp')?'amount-yellow':'amount-red';
+            const sign = (tx.type==='deposit'||tx.type==='profit'||tx.type==='referral')?'+':'';
+            const amt = Math.abs(tx.amount);
+            let sl = tx.status==='pending'?'Pending':tx.status==='approved'?'Approved':
+                     tx.status==='declined'?'Declined':tx.status==='transferred'?'Sent ✓':
+                     tx.status==='failed'?'Failed':tx.status==='otp'?'OTP Needed':tx.status.charAt(0).toUpperCase()+tx.status.slice(1);
+            let det = tx.description||'';
+            if (tx.type==='withdraw' && tx.bank) det = `${tx.bank} - ${tx.accountName} (${tx.accountNumber})`;
+            return `<tr><td>${escHtml(tx.date)}</td><td><span class="badge ${bc}">${escHtml(tx.type)}</span></td><td class="${ac}">${sign}₦${amt.toFixed(2)}</td><td><span class="badge ${bc}">${sl}</span></td><td style="font-size:12px;color:#94a3b8;">${escHtml(det)}</td></tr>`;
+        }).join('');
+    }
+}
+
+function copyRefLink() {
+    const el = document.getElementById('refLink');
+    const text = el.textContent;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => { el.textContent = '✅ Copied!'; setTimeout(() => el.textContent = text, 2000); });
+    } else {
+        const ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+        el.textContent = '✅ Copied!'; setTimeout(() => el.textContent = text, 2000);
+    }
+}
+
+// ============================================================
+// DEPOSIT
+// ============================================================
+
+function showDepositModal() {
+    document.getElementById('depositError').textContent = '';
+    document.getElementById('depositAmount').value = '';
+    document.getElementById('depositModal').classList.add('active');
+}
+
+async function processDeposit() {
+    const amt = parseFloat(document.getElementById('depositAmount').value);
+    const err = document.getElementById('depositError');
+    if (!amt || amt < 2500) { err.textContent = '❌ Minimum deposit is ₦2,500.'; return; }
+
+    const pubKey = getPaystackPublic();
+    const email = currentUserData.email || (currentUser + '@primeinvest.local');
+    const ref = 'PI-' + Date.now() + '-' + Math.random().toString(36).substring(2,8);
+
+    await loadData();
+    const user = appData.users[currentUser];
+    if (!user) { err.textContent = '❌ Session expired.'; return; }
+    if (!user.pendingDeposits) user.pendingDeposits = [];
+    user.pendingDeposits.push({ ref: ref, amount: amt, date: new Date().toISOString() });
+    appData.users[currentUser] = user;
+    await saveData();
+
+    const handler = PaystackPop.setup({
+        key: pubKey,
+        email: email,
+        amount: Math.round(amt * 100),
+        currency: 'NGN',
+        ref: ref,
+        metadata: { username: currentUser },
+        callback: async function(response) {
+            await verifyAndCredit(ref, amt);
+        },
+        onClose: function() {
+            err.textContent = '⚠️ Payment cancelled.';
+        }
+    });
+    handler.openIframe();
+}
+
+async function verifyAndCredit(ref, expectedAmount) {
+    await loadData();
+    const secret = getPaystackSecret();
+    try {
+        const res = await fetch(`https://api.paystack.co/transaction/verify/${ref}`, {
+            headers: { 'Authorization': 'Bearer ' + secret }
+        });
+        const json = await res.json();
+        if (json.status && json.data.status === 'success') {
+            const amtPaid = json.data.amount / 100;
+            await creditDeposit(ref, amtPaid);
+        } else {
+            alert('⚠️ Payment verification failed. Admin can manually credit.');
+        }
+    } catch (e) {
+        alert('⚠️ Could not verify. Admin can manually credit.');
+    }
+}
+
+async function creditDeposit(ref, amount) {
+    await loadData();
+    const user = appData.users[currentUser];
+    if (!user) return;
+    if (!user.pendingDeposits) user.pendingDeposits = [];
+    const pdIndex = user.pendingDeposits.findIndex(p => p.ref === ref);
+    if (pdIndex === -1) {
+        alert('✅ Payment received! (Already processed)');
+        closeModal('depositModal');
+        refreshUserData();
+        return;
+    }
+    user.pendingDeposits.splice(pdIndex, 1);
+    const now = new Date();
+    const ds = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    user.balance += amount;
+    user.invested += amount;
+    if (!user.transactions) user.transactions = [];
+    user.transactions.push({ date: ds, type: 'deposit', amount: amount, description: `Deposit via Paystack (ref: ${ref})` });
+    if (user.referredBy && appData.users[user.referredBy]) {
+        const referrer = appData.users[user.referredBy];
+        const bonus = amount * 0.20;
+        referrer.balance += bonus;
+        referrer.referralBonus = (referrer.referralBonus||0) + bonus;
+        if (!referrer.transactions) referrer.transactions = [];
+        if (!referrer.referrals) referrer.referrals = [];
+        const refDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        referrer.transactions.push({ date: refDate, type: 'referral', amount: bonus, description: `Referral bonus 20% from ${currentUser}` });
+        referrer.referrals.push({ date: refDate, referee: currentUser, bonus: bonus });
+        appData.users[user.referredBy] = referrer;
+    }
+    appData.users[currentUser] = user;
+    await saveData();
+    alert(`✅ Payment confirmed! ₦${amount.toFixed(2)} credited.` + (user.referredBy ? '\n🎉 Your referrer got 20% bonus!' : ''));
+    closeModal('depositModal');
+    refreshUserData();
+}
+
+// ============================================================
+// WITHDRAWAL
+// ============================================================
+
+function showWithdrawModal() {
+    if (currentUserData.status === 'frozen') { alert('❌ Withdrawals disabled.'); return; }
+    const today = new Date();
+    if (today.getDay() !== 5) {
+        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        alert(`❌ Withdrawals only on Fridays. Today is ${days[today.getDay()]}.`);
+        return;
+    }
+    document.getElementById('withdrawError').textContent = '';
+    document.getElementById('withdrawInfo').textContent = 'Balance: ₦' + currentUserData.balance.toFixed(2) + ' — Minimum: ₦1,000';
+    ['withdrawAmount','withdrawAccountName','withdrawAccountNumber'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('withdrawBank').value = '';
+    document.getElementById('withdrawModal').classList.add('active');
+}
+
+async function processWithdraw() {
+    const amt = parseFloat(document.getElementById('withdrawAmount').value);
+    const acctName = document.getElementById('withdrawAccountName').value.trim();
+    const acctNum = document.getElementById('withdrawAccountNumber').value.trim();
+    const bank = document.getElementById('withdrawBank').value;
+    const err = document.getElementById('withdrawError');
+    const today = new Date();
+    if (today.getDay() !== 5) {
+        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        err.textContent = `❌ Withdrawals only on Fridays
+const err = document.getElementById('withdrawError');
+    const today = new Date();
+    if (today.getDay() !== 5) {
+        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        err.textContent = `❌ Withdrawals only on Fridays. Today is ${days[today.getDay()]}.`;
+        return;
+    }
+    if (!amt || amt < 1000) { err.textContent = '❌ Minimum withdrawal is ₦1,000.'; return; }
+    if (!acctName) { err.textContent = '❌ Enter account name.'; return; }
+    if (!acctNum || acctNum.length < 10) { err.textContent = '❌ Enter valid 10-digit account number.'; return; }
+    if (!bank) { err.textContent = '❌ Select a bank.'; return; }
+    if (currentUserData.status === 'frozen') { err.textContent = '❌ Withdrawals disabled.'; return; }
+
+    await loadData();
+    const user = appData.users[currentUser];
+    if (!user) { err.textContent = '❌ Session expired.'; return; }
+    if (user.status === 'frozen') { err.textContent = '❌ Withdrawals disabled.'; return; }
+    if (amt > user.balance) { err.textContent = '❌ Insufficient balance.'; return; }
+
+    const now = new Date();
+    const ds = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    user.balance -= amt;
+    if (!user.withdrawals) user.withdrawals = [];
+    user.withdrawals.push({
+        date: ds, amount: amt, accountName: acctName,
+        accountNumber: acctNum, bank: bank, status: 'pending',
+        transferStatus: '', transferRef: '', transferCode: ''
+    });
+    appData.users[currentUser] = user;
+    await saveData();
+    closeModal('withdrawModal');
+    alert('✅ Withdrawal submitted! Funds will be sent automatically to your bank once admin approves.');
+    refreshUserData();
+}
+// ============================================================
+// ADMIN: WITHDRAWAL APPROVAL WITH AUTO-TRANSFER
+// ============================================================
+
+function getBankCode(bankName) {
+    return BANK_CODES[bankName] || '058';
+}
+
+async function paystackCreateRecipient(name, accountNumber, bankName, secretKey) {
+    const bankCode = getBankCode(bankName);
+    const resp = await fetch('https://api.paystack.co/transferrecipient', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + secretKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            type: 'nuban', name: name, account_number: accountNumber,
+            bank_code: bankCode, currency: 'NGN'
+        })
+    });
+    return await resp.json();
+}
+
+async function paystackInitiateTransfer(amountKobo, recipientCode, reason, secretKey) {
+    const ref = 'PI-' + Date.now() + '-' + Math.random().toString(36).substring(2,6);
+    const resp = await fetch('https://api.paystack.co/transfer', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + secretKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            source: 'balance', amount: amountKobo,
+            recipient: recipientCode, reason: reason, reference: ref
+        })
+    });
+    return await resp.json();
+}
+
+async function paystackFinalizeTransfer(transferCode, otp, secretKey) {
+    const resp = await fetch('https://api.paystack.co/transfer/finalize_transfer', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + secretKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transfer_code: transferCode, otp: otp })
+    });
+    return await resp.json();
+}
+
+async function approveWithdrawal(username, idx) {
+    await loadData();
+    const user = appData.users[username];
+    if (!user || !user.withdrawals || !user.withdrawals[idx]) return;
+    const w = user.withdrawals[idx];
+    if (w.status !== 'pending') return;
+
+    const secret = getPaystackSecret();
+
+    let recipientCode = user.recipientCode || '';
+    if (!recipientCode) {
+        const rcResp = await paystackCreateRecipient(w.accountName, w.accountNumber, w.bank, secret);
+        if (rcResp.status && rcResp.data && rcResp.data.recipient_code) {
+            recipientCode = rcResp.data.recipient_code;
+            user.recipientCode = recipientCode;
+        } else {
+            alert('❌ Failed to create recipient: ' + (rcResp.message || 'Unknown error'));
+            return;
+        }
+    }
+
+    const amountKobo = Math.round(w.amount * 100);
+    const txResp = await paystackInitiateTransfer(amountKobo, recipientCode, `Payout ${username}`, secret);
+
+    if (txResp.status) {
+        if (txResp.data && txResp.data.transfer_code) {
+            w.transferCode = txResp.data.transfer_code;
+            w.transferRef = txResp.data.reference || '';
+            w.status = 'approved';
+
+            if (txResp.meta && txResp.meta.nextStep === 'send_otp') {
+                w.transferStatus = 'otp';
+                pendingTransfer = { transfer_code: txResp.data.transfer_code, username, withdrawalIdx: idx };
+                appData.users[username] = user;
+                await saveData();
+                refreshAdminData();
+                document.getElementById('otpInfo').textContent = `OTP sent to Paystack phone. Transfer ₦${w.amount.toFixed(2)} to ${w.accountName} (${w.bank}).`;
+                document.getElementById('otpCode').value = '';
+                document.getElementById('otpError').textContent = '';
+                document.getElementById('otpModal').classList.add('active');
+                return;
+            } else {
+                w.transferStatus = 'success';
+                const now = new Date();
+                const ds = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+                if (!user.transactions) user.transactions = [];
+                user.transactions.push({ date: ds, type: 'withdraw', amount: -w.amount, description: `Auto-sent via Paystack → ${w.bank} (${w.accountName})` });
+                appData.users[username] = user;
+                await saveData();
+                refreshAdminData();
+                alert(`✅ ₦${w.amount.toFixed(2)} sent to ${w.accountName} (${w.bank})!`);
+            }
+        } else {
+            alert('❌ Transfer failed: No transfer code.');
+        }
+    } else {
+        alert('❌ Transfer failed: ' + (txResp.message || 'Check Paystack balance.'));
+    }
+}
+async function submitOTP() {
+    const otp = document.getElementById('otpCode').value.trim();
+    const err = document.getElementById('otpError');
+    if (!otp || otp.length !== 6) { err.textContent = '❌ Enter 6-digit OTP.'; return; }
+    if (!pendingTransfer) { err.textContent = '❌ No pending transfer.'; return; }
+
+    const secret = getPaystackSecret();
+    const resp = await paystackFinalizeTransfer(pendingTransfer.transfer_code, otp, secret);
+
+    if (resp.status) {
+        await loadData();
+        const user = appData.users[pendingTransfer.username];
+        if (user && user.withdrawals[pendingTransfer.withdrawalIdx]) {
+            const w = user.withdrawals[pendingTransfer.withdrawalIdx];
+            w.transferStatus = 'success';
+            const now = new Date();
+            const ds = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            if (!user.transactions) user.transactions = [];
+            user.transactions.push({ date: ds, type: 'withdraw', amount: -w.amount, description: `Auto-sent via Paystack → ${w.bank} (${w.accountName})` });
+            appData.users[pendingTransfer.username] = user;
+            await saveData();
+        }
+        closeModal('otpModal');
+        pendingTransfer = null;
+        alert('✅ Transfer completed!');
+        refreshAdminData();
+    } else {
+        err.textContent = '❌ OTP failed: ' + (resp.message || 'Try again.');
+    }
+}
+
+async function declineWithdrawal(username, idx) {
+    await loadData();
+    const user = appData.users[username];
+    if (!user || !user.withdrawals || !user.withdrawals[idx]) return;
+    const w = user.withdrawals[idx];
+    user.balance += w.amount;
+    w.status = 'declined';
+    const now = new Date();
+    const ds = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    if (!user.transactions) user.transactions = [];
+    user.transactions.push({ date: ds, type: 'withdraw', amount: w.amount, description: `Declined — refunded ₦${w.amount.toFixed(2)}` });
+    await saveData();
+    refreshAdminData();
+}
+
+// Admin reset user password
+function showResetUserPassModal(username) {
+    document.getElementById('resetUserPassUsername').value = username || '';
+    document.getElementById('resetUserPassNew').value = '';
+    document.getElementById('resetUserPassError').textContent = '';
+    document.getElementById('resetUserPassModal').classList.add('active');
+}
+
+async function adminResetUserPasswordSubmit() {
+    const u = document.getElementById('resetUserPassUsername').value.trim();
+    const np = document.getElementById('resetUserPassNew').value.trim();
+    const err = document.getElementById('resetUserPassError');
+    if (!u || !np) { err.textContent = '❌ Fill both fields.'; return; }
+    if (np.length < 4) { err.textContent = '❌ Min 4 characters.'; return; }
+    await loadData();
+    if (!appData.users[u]) { err.textContent = '❌ User not found.'; return; }
+    appData.users[u].password = np;
+    await saveData();
+    closeModal('resetUserPassModal');
+    alert(`✅ Password for "${u}" has been reset!`);
+    refreshAdminData();
+}
+
+async function adminUpdateInterest() {
+    const rate = parseFloat(document.getElementById('adminInterestRate').value);
+    if (isNaN(rate) || rate < 0) { alert('Enter valid rate.'); return; }
+    await loadData();
+    if (!appData.settings) appData.settings = {};
+    appData.settings.interestRate = rate;
+    await saveData();
+    document.getElementById('currentInterestDisplay').textContent = rate + '%';
+    alert(`✅ Daily interest set to ${rate}%`);
+}
+
+async function adminSavePaystackKeys() {
+    const pub = document.getElementById('adminPaystackPublic').value.trim();
+    const sec = document.getElementById('adminPaystackSecret').value.trim();
+    const msg = document.getElementById('paystackMsg');
+    await loadData();
+    if (!appData.settings) appData.settings = {};
+    if (pub) appData.settings.paystackPublicKey = pub;
+    if (sec) appData.settings.paystackSecretKey = sec;
+    await saveData();
+    msg.innerHTML = '✅ Keys saved! <strong>Test keys active by default</strong> — replace with live keys when ready.';
+    msg.style.color = '#22c55e';
+}
+
+async function adminAdjustBalance(username) {
+    const amt = parseFloat(document.getElementById('adjust-' + username).value);
+    if (!amt || amt <= 0) { alert('Enter valid amount.'); return; }
+    await loadData();
+    const user = appData.users[username];
+    if (!user) { alert('User not found.'); return; }
+    const now = new Date();
+    const ds = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    user.balance += amt; user.profit += amt;
+    if (!user.transactions) user.transactions = [];
+    user.transactions.push({ date: ds, type: 'profit', amount: amt, description: 'Admin adjustment' });
+    await saveData();
+    refreshAdminData();
+    document.getElementById('adjust-' + username).value = '';
+}
+
+async function adminDeductBalance(username) {
+    const amt = parseFloat(document.getElementById('adjust-' + username).value);
+    if (!amt || amt <= 0) { alert('Enter valid amount.'); return; }
+    await loadData();
+    const user = appData.users[username];
+    if (!user) { alert('User not found.'); return; }
+    if (amt > user.balance) { alert('Insufficient balance.'); return; }
+    const now = new Date();
+    const ds = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    user.balance -= amt;
+    if (!user.transactions) user.transactions = [];
+    user.transactions.push({ date: ds, type: 'withdraw', amount: -amt, description: 'Admin deduction' });
+    await saveData();
+    refreshAdminData();
+    document.getElementById('adjust-' + username).value = '';
+}
+
+async function adminUpdateStatus(username) {
+    const status = document.getElementById('status-' + username).value;
+    await loadData();
+    const user = appData.users[username];
+    if (!user) { alert('User not found.'); return; }
+    user.status = status;
+    if (status === 'closed') user.balance = 0;
+    await saveData();
+    refreshAdminData();
+}
+
+async function adminDeleteUser(username) {
+    if (!confirm(`Delete user "${username}"?`)) return;
+    await loadData();
+    delete appData.users[username];
+    await saveData();
+    refreshAdminData();
+}
+
+async function adminCreateUser() {
+    const u = document.getElementById('adminNewUser').value.trim();
+    const p = document.getElementById('adminNewPass').value.trim();
+    const fn = document.getElementById('adminNewName').value.trim();
+    const msg = document.getElementById('adminCreateMsg');
+    if (!u || !p || !fn) { msg.textContent = '❌ Fill all fields.'; msg.style.color = '#ef4444'; return; }
+    if (p.length < 4) { msg.textContent = '❌ Password min 4 chars.'; msg.style.color = '#ef4444'; return; }
+    await loadData();
+    if (appData.users[u]) { msg.textContent = '❌ Username exists.'; msg.style.color = '#ef4444'; return; }
+    const now = new Date();
+    const ds = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    appData.users[u] = {
+        fullName: fn, email: '', phone: '', password: p, balance: 0, invested: 0,
+        profit: 0, referralBonus: 0, referralCode: u, referredBy: '',
+        plan: 'Basic', status: 'active', createdAt: ds, lastInterestDate: '',
+        transactions: [], withdrawals: [], referrals: [], recipientCode: ''
+    };
+    await saveData();
+    msg.textContent = `✅ User "${u}" created!`; msg.style.color = '#22c55e';
+    ['adminNewUser','adminNewPass','adminNewName'].forEach(id => document.getElementById(id).value = '');
+    refreshAdminData();
+}
+
+async function changeAdminPassword() {
+    const cp = document.getElementById('adminCurrentPass').value.trim();
+    const np = document.getElementById('adminNewPassInput').value.trim();
+    const msg = document.getElementById('changePassMsg');
+    if (!cp || !np) { msg.textContent = '❌ Fill both fields.'; msg.style.color = '#ef4444'; return; }
+    if (np.length < 4) { msg.textContent = '❌ Min 4 characters.'; msg.style.color = '#ef4444'; return; }
+    await loadData();
+    if (appData.admin.password !== cp) { msg.textContent = '❌ Current password wrong.'; msg.style.color = '#ef4444'; return; }
+    appData.admin.password = np;
+    await saveData();
+    msg.textContent = '✅ Password changed!'; msg.style.color = '#22c55e';
+    document.getElementById('adminCurrentPass').value = '';
+    document.getElementById('adminNewPassInput').value = '';
+    setTimeout(() => msg.textContent = '', 3000);
+}
+
+async function adminPayAllProfits() {
+    await loadData();
+    const rate = (appData.settings && appData.settings.interestRate) || 2;
+    if (!confirm(`Apply ${rate}% interest to all active users?`)) return;
+    const now = new Date();
+    const ds = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const today = now.toDateString();
+    let c = 0;
+    for (const [u, user] of Object.entries(appData.users)) {
+        if (user.status !== 'active' || user.balance <= 0) continue;
+        if (user.lastInterestDate === today) continue;
+        const p = user.balance * (rate / 100);
+        user.balance += p; user.profit += p;
+        if (!user.transactions) user.transactions = [];
+        user.transactions.push({ date: ds, type: 'profit', amount: p, description: `Daily interest ${rate}%` });
+        user.lastInterestDate = today;
+        c++;
+    }
+    await saveData();
+    document.getElementById('adminActionMsg').textContent = `✅ ${rate}% applied to ${c} users.`;
+    refreshAdminData();
+}
+
+async function adminResetAll() {
+    if (!confirm('⚠️ Delete ALL users except admin?')) return;
+    if (!confirm('Sure?')) return;
+    await loadData();
+    appData.users = {};
+    await saveData();
+    refreshAdminData();
+    document.getElementById('adminActionMsg').textContent = '✅ All user data reset.';
+}
+
+async function refreshAdminData() {
+    await loadData();
+    if (!appData) {
+        document.getElementById('adminUserCards').innerHTML = '<p style="color:#ef4444;">Failed to load.</p>';
+        document.getElementById('pendingWithdrawals').innerHTML = '';
+        return;
+    }
+
+    const curRate = (appData.settings && appData.settings.interestRate) || 2;
+    document.getElementById('adminInterestRate').value = curRate;
+    document.getElementById('currentInterestDisplay').textContent = curRate + '%';
+
+    document.getElementById('adminPaystackPublic').value = appData.settings?.paystackPublicKey || '';
+    document.getElementById('adminPaystackSecret').value = appData.settings?.paystackSecretKey || '';
+
+    let ph = '';
+    let hasPending = false;
+    for (const [un, user] of Object.entries(appData.users || {})) {
+        if (user.withdrawals) {
+            user.withdrawals.forEach((w, idx) => {
+                if (w.status === 'pending') {
+                    hasPending = true;
+                    ph += `<div style="background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:12px;margin-bottom:8px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                            <div><strong style="color:#f1f5f9;">${escHtml(un)}</strong> — ₦${w.amount.toFixed(2)}
+                                <div style="font-size:12px;color:#94a3b8;">${escHtml(w.bank)} — ${escHtml(w.accountName)} (${escHtml(w.accountNumber)})<br>${escHtml(w.date)}</div>
+                            </div>
+                            <div style="display:flex;gap:6px;">
+                                <button class="btn-green" onclick="approveWithdrawal('${escHtml(un)}', ${idx})" style="padding:6px 14px;">✓ Approve & Send</button>
+                                <button class="btn-red" onclick="declineWithdrawal('${escHtml(un)}', ${idx})" style="padding:6px 14px;">✕ Decline</button>
+                            </div>
+                        </div>
+                    </div>`;
+                }
+            });
+        }
+    }
+    document.getElementById('pendingWithdrawals').innerHTML = hasPending ? ph : '<p style="color:#64748b;">No pending withdrawals.</p>';
+
+    const container = document.getElementById('adminUserCards');
+    const users = appData.users || {};
+    if (!Object.keys(users).length) { container.innerHTML = '<p style="color:#64748b;">No users.</p>'; return; }
+    container.innerHTML = '';
+    for (const [un, user] of Object.entries(users)) {
+        const pc = (user.withdrawals || []).filter(w => w.status === 'pending').length;
+        const card = document.createElement('div');
+        card.className = 'admin-card';
+        card.innerHTML = `
+            <div class="user-header"><h4>${escHtml(user.fullName||un)}</h4><span class="badge ${user.status}">${escHtml(user.status)}</span></div>
+            <div class="user-detail"><strong>User:</strong> ${escHtml(un)} | <strong>Email:</strong> ${escHtml(user.email)}</div>
+            <div class="user-detail"><strong>Balance:</strong> <span class="amount-green">₦${user.balance.toFixed(2)}</span> | <strong>Profit:</strong> <span class="amount-green">₦${user.profit.toFixed(2)}</span></div>
+            <div class="user-detail"><strong>Invested:</strong> ₦${user.invested.toFixed(2)} | <strong>Referral Bonus:</strong> <span class="amount-purple">₦${(user.referralBonus||0).toFixed(2)}</span></div>
+            <div class="user-detail"><strong>Referred By:</strong> ${user.referredBy||'None'} | <strong>Pending WDs:</strong> <span style="color:${pc?'#facc15':'#64748b'};">${pc}</span></div>
+            <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+                <input type="number" id="adjust-${escHtml(un)}" placeholder="Amount" step="0.01" style="padding:6px 10px;background:#1e293b;border:1px solid #334155;border-radius:4px;color:#fff;font-size:12px;width:90px;">
+                <button class="btn-green" onclick="adminAdjustBalance('${escHtml(un)}')" style="padding:6px 10px;font-size:11px;">Add</button>
+                <button class="btn-red" onclick="adminDeductBalance('${escHtml(un)}')" style="padding:6px 10px;font-size:11px;">Deduct</button>
+                <select id="status-${escHtml(un)}" style="padding:6px;background:#1e293b;border:1px solid #334155;border-radius:4px;color:#fff;font-size:11px;">
+                    <option value="active" ${user.status==='active'?'selected':''}>Active</option>
+                    <option value="frozen" ${user.status==='frozen'?'selected':''}>Frozen</option>
+                    <option value="closed" ${user.status==='closed'?'selected':''}>Closed</option>
+                </select>
+                <button class="btn-blue" onclick="adminUpdateStatus('${escHtml(un)}')" style="padding:6px 10px;font-size:11px;">Set</button>
+                <button class="btn-yellow" onclick="showResetUserPassModal('${escHtml(un)}')" style="padding:6px 10px;font-size:11px;">🔑 Reset Pass</button>
+                <button class="btn-red" onclick="adminDeleteUser('${escHtml(un)}')" style="padding:6px 10px;font-size:11px;">🗑</button>
+            </div>`;
+        container.appendChild(card);
+    }
+}
+
+function escHtml(str) { if (!str) return ''; const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+
+window.addEventListener('DOMContentLoaded', function() {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref) document.getElementById('regReferral').value = ref;
+});
+
+document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('active'); });
+});
+document.getElementById('adminLoginOverlay').addEventListener('click', function(e) { if (e.target === this) closeAdminLogin(); });
+</script>
+</body>
+</html>
