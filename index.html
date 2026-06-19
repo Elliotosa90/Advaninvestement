@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PrimeInvest</title>
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#0a0e1a;color:#e0e0e0;min-height:100vh}
+#app{max-width:1200px;margin:0 auto;padding:20px}
+.hidden{display:none!important}
+header{display:flex;justify-content:space-between;align-items:center;padding:15px 0;border-bottom:1px solid #1e2a45;margin-bottom:30px}
+header h1{color:#00d4aa;font-size:24px}
+header h1 span{color:#fff}
+#userInfo{display:flex;align-items:center;gap:12px;font-size:14px;flex-wrap:wrap}
+.bal{color:#00d4aa;font-weight:700}
+.btn{background:linear-gradient(135deg,#00d4aa,#0088cc);color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:14px;font-weight:600;transition:.3s}
+.btn:hover{transform:translateY(-2px)}
+.btn-sm{padding:5px 14px;font-size:12px}
+.btn-danger{background:linear-gradient(135deg,#ff4757,#c0392b)}
+.btn-warning{background:linear-gradient(135deg,#f39c12,#e67e22)}
+.card{background:#111827;border-radius:12px;padding:25px;margin-bottom:20px;border:1px solid #1e2a45}
+.card h2{color:#00d4aa;margin-bottom:15px;font-size:18px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:25px}
+.stat-box{background:#111827;padding:20px;border-radius:10px;text-align:center;border:1px solid #1e2a45}
+.stat-box .val{font-size:28px;font-weight:700;color:#00d4aa}
+.stat-box .lbl{font-size:13px;color:#8892b0;margin-top:5px}
+.form-group{margin-bottom:15px}
+.form-group label{display:block;margin-bottom:5px;color:#8892b0;font-size:13px;font-weight:600}
+.form-group input,.form-group select{width:100%;padding:10px 14px;border-radius:6px;border:1px solid #1e2a45;background:#0d1321;color:#e0e0e0;font-size:14px;outline:none}
+.form-group input:focus{border-color:#00d4aa}
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:1000}
+.modal{background:#111827;border-radius:12px;padding:30px;width:90%;max-width:480px;border:1px solid #1e2a45;max-height:90vh;overflow-y:auto}
+.modal h2{color:#00d4aa;margin-bottom:20px}
+.modal .close{float:right;background:0;border:none;color:#8892b0;font-size:24px;cursor:pointer}
+.modal .close:hover{color:#fff}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid #1e2a45}
+th{color:#8892b0;font-weight:600;font-size:12px;text-transform:uppercase}
+td{color:#c0c8dc}
+.status-pending{color:#f39c12}
+.status-approved{color:#00d4aa}
+.status-declined{color:#ff4757}
+.toast{position:fixed;bottom:30px;right:30px;padding:15px 25px;border-radius:8px;color:#fff;font-weight:600;z-index:9999;animation:slideIn .3s ease;max-width:350px}
+.toast.success{background:#00d4aa}
+.toast.error{background:#ff4757}
+.toast.info{background:#0088cc}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+.tabs{display:flex;gap:5px;margin-bottom:20px;flex-wrap:wrap}
+.tab{padding:8px 20px;cursor:pointer;border-radius:6px 6px 0 0;font-size:14px;color:#8892b0;background:#0d1321;border:1px solid #1e2a45}
+.tab.active{color:#00d4aa;background:#111827;border-color:#00d4aa}
+.amount{color:#00d4aa;font-weight:700}
+small{color:#8892b0;font-size:12px}
+.copy-btn{background:0;border:1px solid #1e2a45;color:#8892b0;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px;margin-left:5px}
+.copy-btn:hover{color:#fff;border-color:#00d4aa}
+.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:768px){.admin-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>Prime<span>Invest</span></h1>
+    <div id="userInfo">
+      <span id="displayName">Guest</span>
+      <span class="bal" id="displayBalance">$0.00</span>
+      <button class="btn btn-sm" id="btnDeposit" onclick="showDepositModal()">Deposit</button>
+      <button class="btn btn-sm btn-warning" id="btnLogout" onclick="logout()" style="display:none">Logout</button>
+      <button class="btn btn-sm" id="btnLogin" onclick="showLoginModal()">Login</button>
+      <button class="btn btn-sm" id="btnRegister" onclick="showRegisterModal()">Register</button>
+    </div>
+  </header>
+
+  <div id="dashboard" class="hidden">
+    <div class="stats">
+      <div class="stat-box"><div class="val" id="statBalance">$0.00</div><div class="lbl">Balance</div></div>
+      <div class="stat-box"><div class="val" id="statInvested">$0.00</div><div class="lbl">Invested</div></div>
+      <div class="stat-box"><div class="val" id="statReturns">$0.00</div><div class="lbl">Returns</div></div>
+      <div class="stat-box"><div class="val" id="statPending">$0.00</div><div class="lbl">Pending Dep.</div></div>
+    </div>
+    <div class="tabs">
+      <span class="tab active" onclick="switchTab('invest')">Invest</span>
+      <span class="tab" onclick="switchTab('deposits')">Deposits</span>
+      <span class="tab" onclick="switchTab('transactions')">Transactions</span>
+      <span class="tab" onclick="switchTab('referrals')">Referrals</span>
+    </div>
+    <div id="tabInvest"><div class="card"><h2>Plans</h2><div id="investmentPlans"></div></div></div>
+    <div id="tabDeposits" class="hidden"><div class="card"><h2>Deposits</h2><div id="depositList"><p style="color:#8892b0">None yet.</p></div></div></div>
+    <div id="tabTransactions" class="hidden"><div class="card"><h2>Transactions</h2><div id="transactionList"><p style="color:#8892b0">None yet.</p></div></div></div>
+    <div id="tabReferrals" class="hidden">
+      <div class="card">
+        <h2>Referrals</h2>
+        <p style="margin-bottom:10px">Earn 5% commission.</p>
+        <div class="form-group"><label>Your Link</label><div><input type="text" id="referralLink" readonly onclick="this.select()" style="width:calc(100% - 60px);display:inline"><button class="copy-btn" onclick="copyReferral()">Copy</button></div></div>
+        <div id="referralStats"><p style="color:#8892b0">No referrals.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="guestView">
+    <div class="card" style="text-align:center;padding:60px 20px">
+      <h2 style="font-size:28px;margin-bottom:15px">Welcome to PrimeInvest</h2>
+      <p style="color:#8892b0;margin-bottom:25px;font-size:16px">Invest and earn.</p>
+      <div style="display:flex;justify-content:center;gap:15px">
+        <button class="btn" onclick="showRegisterModal()">Get Started</button>
+        <button class="btn" style="background:0;border:1px solid #00d4aa;color:#00d4aa" onclick="showLoginModal()">Login</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN MODAL -->
+<div id="loginModal" class="modal-overlay hidden" onclick="if(event.target===this)closeModal('loginModal')">
+  <div class="modal">
+    <button class="close" onclick="closeModal('loginModal')">&times;</button>
+    <h2>Login</h2>
+    <div id="loginError" style="color:#ff4757;margin-bottom:10px"></div>
+    <div class="form-group"><label>Username</label><input type="text" id="loginUsername" placeholder="Username" onkeydown="if(event.key==='Enter')loginUser()"></div>
+    <div class="form-group"><label>Password</label><input type="password" id="loginPassword" placeholder="Password" onkeydown="if(event.key==='Enter')loginUser()"></div>
+    <button class="btn" style="width:100%" onclick="loginUser()">Login</button>
+    <p style="text-align:center;margin-top:15px;color:#8892b0">No account? <a href="#" style="color:#00d4aa" onclick="event.preventDefault();closeModal('loginModal');showRegisterModal()">Register</a></p>
+  </div>
+</div>
+
+<!-- REGISTER MODAL -->
+<div id="registerModal" class="modal-overlay hidden" onclick="if(event.target===this)closeModal('registerModal')">
+  <div class="modal">
+    <button class="close" onclick="closeModal('registerModal')">&times;</button>
+    <h2>Register</h2>
+    <div id="registerError" style="color:#ff4757;margin-bottom:10px"></div>
+    <div class="form-group"><label>Full Name</label><input type="text" id="regName" placeholder="Full name"></div>
+    <div class="form-group"><label>Username</label><input type="text" id="regUsername" placeholder="Username"></div>
+    <div class="form-group"><label>Email</label><input type="email" id="regEmail" placeholder="Email"></div>
+    <div class="form-group"><label>Password (min 6 chars)</label><input type="password" id="regPassword" placeholder="Password"></div>
+    <div class="form-group"><label>Referral (optional)</label><input type="text" id="regReferral" placeholder="Referral code"></div>
+    <button class="btn" style="width:100%" onclick="registerUser()">Register</button>
+    <p style="text-align:center;margin-top:15px;color:#8892b0">Have an account? <a href="#" style="color:#00d4aa" onclick="event.preventDefault();closeModal('registerModal');showLoginModal()">Login</a></p>
+  </div>
+</div>
+
+<!-- DEPOSIT MODAL -->
+<div id="depositModal" class="modal-overlay hidden" onclick="if(event.target===this)closeModal('depositModal')">
+  <div class="modal">
+    <button class="close" onclick="closeModal('depositModal')">&times;</button>
+    <h2>Deposit</h2>
+    <div class="form-group"><label>Amount ($) — min $10</label><input type="number" id="depositAmount" min="10" step="1" placeholder="10" onkeydown="if(event.key==='Enter')processDeposit()"></div>
+    <button class="btn" style="width:100%" id="depositBtn" onclick="processDeposit()">Pay with Paystack</button>
+    <div id="depositStatus" style="margin-top:10px;text-align:center;font-size:14px"></div>
+  </div>
+</div>
+
+<!-- ADMIN MODAL (Ctrl+Shift+A) -->
+<div id="adminModal" class="modal-overlay hidden" onclick="if(event.target===this)closeModal('adminModal')">
+  <div class="modal" style="max-width:750px">
+    <button class="close" onclick="closeModal('adminModal')">&times;</button>
+    <h2 style="color:#f39c12">Admin Panel</h2>
+    <div id="adminLoginForm">
+      <p style="margin-bottom:15px;color:#8892b0">Enter admin credentials to continue.</p>
+      <div id="adminError" style="color:#ff4757;margin-bottom:10px"></div>
+      <div class="form-group"><label>Username</label><input type="text" id="adminUser" value="admin"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="adminPass" value="admin123" onkeydown="if(event.key==='Enter')adminLogin()"></div>
+      <button class="btn" style="width:100%" onclick="adminLogin()">Access Admin</button>
+    </div>
+    <div id="adminPanel" class="hidden">
+      <div class="tabs">
+        <span class="tab active" onclick="switchAdminTab('manage')">Deposits</span>
+        <span class="tab" onclick="switchAdminTab('settings')">Settings</span>
+        <span class="tab" onclick="switchAdminTab('users')">Users</span>
+      </div>
+      <div id="adminManage"><div id="adminDeposits"><p style="color:#8892b0">Loading...</p></div></div>
+      <div id="adminSettings" class="hidden">
+        <h3 style="color:#00d4aa;margin-bottom:15px">Paystack Keys</h3>
+        <div class="form-group"><label>Mode</label><select id="paystackMode"><option value="test">Test</option><option value="live">Live</option></select></div>
+        <div class="form-group"><label>Test Public Key</label><input type="text" id="testPublicKey" placeholder="pk_test_..."></div>
+        <div class="form-group"><label>Test Secret Key</label><input type="text" id="testSecretKey" placeholder="sk_test_..."></div>
+        <div class="form-group"><label>Live Public Key</label><input type="text" id="livePublicKey" placeholder="pk_live_..."></div>
+        <div class="form-group"><label>Live Secret Key</label><input type="text" id="liveSecretKey" placeholder="sk_live_..."></div>
+        <button class="btn" onclick="saveAdminSettings()">Save</button>
+        <div id="settingsMsg" style="margin-top:10px;color:#00d4aa"></div>
+      </div>
+      <div id="adminUsers" class="hidden"><div id="adminUserList"><p style="color:#8892b0">Loading...</p></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA — localStorage
+// ============================================================
+const KEY = 'primeinvest_db';
+function loadDB() {
+  try {
+    var raw = localStorage.getItem(KEY);
+    if (raw) {
+      var d = JSON.parse(raw);
+      d.settings = d.settings || { paystackMode:'test', testPublicKey:'pk_test_7d94595adb7d9380db9ff9d0718c334dc19a4140', testSecretKey:'sk_test_df69dcaf5a37852f3f9ae22b2908bcfc0dddc041', livePublicKey:'pk_live_b2e4762baba76699d7217a4009bacb3fbd8b3d31', liveSecretKey:'sk_live_c540afd1aa774c364ba11ab2d41cfcbf69b72819' };
+      d.deposits = d.deposits || [];
+      d.transactions = d.transactions || [];
+      d.investments = d.investments || [];
+      d.referrals = d.referrals || [];
+      d.users = d.users || {};
+      return d;
+    }
+  } catch(e){}
+  return { users:{}, deposits:[], transactions:[], investments:[], referrals:[], settings:{ paystackMode:'test', testPublicKey:'pk_test_7d94595adb7d9380db9ff9d0718c334dc19a4140', testSecretKey:'sk_test_df69dcaf5a37852f3f9ae22b2908bcfc0dddc041', livePublicKey:'pk_live_b2e4762baba76699d7217a4009bacb3fbd8b3d31', liveSecretKey:'sk_live_c540afd1aa774c364ba11ab2d41cfcbf69b72819' } };
+}
+var db = loadDB();
+var currentUser = null;
+
+function saveDB() { try{ localStorage.setItem(KEY,JSON.stringify(db)); }catch(e){} }
+
+// ============================================================
+// PAYSTACK LOADER
+// ============================================================
+var psReady = false;
+function ensurePaystack(fn) {
+  if (typeof PaystackPop !== 'undefined' && PaystackPop.setup) { psReady = true; fn(); return; }
+  var check = function() {
+    if (typeof PaystackPop !== 'undefined' && PaystackPop.setup) { psReady = true; fn(); return; }
+    setTimeout(check, 300);
+  };
+  check();
+}
+
+// ============================================================
+// KEYS
+// ============================================================
+function getKeys() {
+  var m = db.settings.paystackMode || 'test';
+  return { pub: m==='live'?db.settings.livePublicKey:db.settings.testPublicKey, sec: m==='live'?db.settings.liveSecretKey:db.settings.testSecretKey, mode:m };
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function esc(s){ return typeof s==='string'?s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''; }
+function toast(m,t){ var e=document.createElement('div'); e.className='toast '+(t||'info'); e.textContent=m; document.body.appendChild(e); setTimeout(function(){e.remove()},4000); }
+function closeModal(i){ document.getElementById(i).classList.add('hidden'); }
+
+// ============================================================
+// AUTH
+// ============================================================
+function showLoginModal(){ document.getElementById('loginError').textContent=''; document.getElementById('loginModal').classList.remove('hidden'); document.getElementById('loginUsername').focus(); }
+function showRegisterModal(){ document.getElementById('registerError').textContent=''; document.getElementById('registerModal').classList.remove('hidden'); document.getElementById('regName').focus(); }
+
+function registerUser() {
+  var n = document.getElementById('regName').value.trim();
+  var u = document.getElementById('regUsername').value.trim().toLowerCase();
+  var e = document.getElementById('regEmail').value.trim();
+  var p = document.getElementById('regPassword').value.trim();
+  var r = document.getElementById('regReferral').value.trim().toLowerCase();
+  var err = document.getElementById('registerError');
+  if(!n||!u||!e||!p){ err.textContent='Fill all fields.'; return; }
+  if(p.length<6){ err.textContent='Password min 6 chars.'; return; }
+  if(db.users[u]){ err.textContent='Username taken.'; return; }
+  var refBy = null;
+  if(r){
+    for(var x in db.users){ if(x===r||db.users[x].refCode===r){ refBy=x; break; } }
+    if(!refBy){ err.textContent='Invalid referral.'; return; }
+  }
+  var rc = u + Math.random().toString(36).substring(2,6).toUpperCase();
+  db.users[u] = { name:n, email:e, password:p, balance:0, invested:0, returns:0, refCode:rc, refBy:refBy, createdAt:new Date().toISOString() };
+  if(refBy) db.referrals.push({ from:refBy, user:u, bonus:0, createdAt:new Date().toISOString() });
+  saveDB(); closeModal('registerModal');
+  document.getElementById('regName').value=''; document.getElementById('regUsername').value=''; document.getElementById('regEmail').value=''; document.getElementById('regPassword').value=''; document.getElementById('regReferral').value='';
+  toast('Account created! Login now.','success');
+  showLoginModal();
+}
+
+function loginUser() {
+  var u = document.getElementById('loginUsername').value.trim().toLowerCase();
+  var p = document.getElementById('loginPassword').value.trim();
+  var err = document.getElementById('loginError');
+  if(!u||!p){ err.textContent='Enter both fields.'; return; }
+  var user = db.users[u];
+  if(!user||user.password!==p){ err.textContent='Invalid credentials.'; return; }
+  currentUser = u; saveDB(); closeModal('loginModal');
+  document.getElementById('loginUsername').value=''; document.getElementById('loginPassword').value='';
+  refreshUI(); toast('Welcome back!','success');
+}
+
+function logout(){ currentUser=null; refreshUI(); toast('Logged out','info'); }
+
+// ============================================================
+// DEPOSIT
+// ============================================================
+function showDepositModal() {
+  if(!currentUser) return toast('Login first','error');
+  document.getElementById('depositStatus').innerHTML='';
+  document.getElementById('depositBtn').disabled=true;
+  document.getElementById('depositBtn').textContent='Loading...';
+  ensurePaystack(function(){
+    document.getElementById('depositModal').classList.remove('hidden');
+    document.getElementById('depositAmount').focus();
+    document.getElementById('depositBtn').disabled=false;
+    document.getElementById('depositBtn').textContent='Pay with Paystack';
+  });
+}
+
+function processDeposit() {
+  var amt = parseFloat(document.getElementById('depositAmount').value);
+  var st = document.getElementById('depositStatus');
+  var btn = document.getElementById('depositBtn');
+  if(!amt||amt<10){ st.innerHTML='<span style="color:#ff4757">Minimum $10</span>'; return; }
+  var k = getKeys();
+  if(!k.pub||k.pub.indexOf('pk_')!==0){ st.innerHTML='<span style="color:#ff4757">Paystack not configured</span>'; return; }
+  var user = db.users[currentUser];
+  btn.disabled=true; st.innerHTML='Opening Paystack...';
+  ensurePaystack(function(){
+    try {
+      var ref = 'PI-'+Date.now()+'-'+Math.random().toString(36).substring(2,6).toUpperCase();
+      var handler = PaystackPop.setup({
+        key: k.pub, email: user.email||currentUser+'@pi.com', amount: Math.round(amt*100), currency: 'USD', ref: ref,
+        metadata: { username: currentUser },
+        callback: function(response) {
+          st.innerHTML='Verifying...'; btn.disabled=true;
+          verifyAndCredit(response.reference, amt).then(function(ok){
+            if(ok){ st.innerHTML='<span style="color:#00d4aa">Deposited!</span>'; toast('$'+amt.toFixed(2)+' deposited!','success'); }
+            else{ st.innerHTML='<span style="color:#ff4757">Failed</span>'; btn.disabled=false; }
+          }).catch(function(e){ st.innerHTML='<span style="color:#ff4757">'+esc(e.message)+'</span>'; btn.disabled=false; });
+        },
+        onClose: function() { st.innerHTML=''; btn.disabled=false; toast('Cancelled','info'); }
+      });
+      handler.openIframe();
+    } catch(e) { st.innerHTML='<span style="color:#ff4757">Error: '+esc(e.message)+'</span>'; btn.disabled=false; }
+  });
+}
+
+function verifyAndCredit(ref, amt) {
+  return new Promise(function(resolve,reject){
+    var k = getKeys();
+    if(!k.sec||k.sec.indexOf('sk_')!==0){ credit(currentUser,amt,ref); resolve(true); return; }
+    var x = new XMLHttpRequest();
+    x.open('GET','https://api.paystack.co/transaction/verify/'+encodeURIComponent(ref));
+    x.setRequestHeader('Authorization','Bearer '+k.sec);
+    x.timeout=15000;
+    x.onload=function(){
+      try{ var r=JSON.parse(x.responseText); if(r.status&&r.data.status==='success'){ credit(currentUser,r.data.amount/100,ref); resolve(true); } else reject(new Error(r.message||'Verify fail')); }
+      catch(e){ reject(new Error('Bad response')); }
+    };
+    x.onerror=function(){ credit(currentUser,amt,ref); resolve(true); };
+    x.ontimeout=function(){ credit(currentUser,amt,ref); resolve(true); };
+    x.send();
+  });
+}
+
+function credit(user, amt, ref) {
+  var u = db.users[user]; if(!u) return;
+  u.balance = (u.balance||0)+amt;
+  db.deposits.push({ username:user, amount:amt, reference:ref, status:'approved', createdAt:new Date().toISOString() });
+  db.transactions.push({ username:user, type:'deposit', amount:amt, description:'Deposit via Paystack', createdAt:new Date().toISOString() });
+  if(u.refBy&&db.users[u.refBy]){
+    var b = amt*0.05; db.users[u.refBy].balance=(db.users[u.refBy].balance||0)+b;
+    db.transactions.push({ username:u.refBy, type:'referral', amount:b, description:'Referral from '+user, createdAt:new Date().toISOString() });
+    for(var i=0;i<db.referrals.length;i++) if(db.referrals[i].user===user) db.referrals[i].bonus=b;
+  }
+  saveDB(); refreshUI();
+}
+
+// ============================================================
+// UI
+// ============================================================
+function refreshUI() {
+  var d = document.getElementById('dashboard'), g = document.getElementById('guestView');
+  var bl = document.getElementById('btnLogin'), br = document.getElementById('btnRegister'), bo = document.getElementById('btnLogout'), bd = document.getElementById('btnDeposit');
+  var dn = document.getElementById('displayName'), db2 = document.getElementById('displayBalance');
+  if(currentUser&&db.users[currentUser]){
+    var u=db.users[currentUser]; d.classList.remove('hidden'); g.classList.add('hidden');
+    bl.style.display='none'; br.style.display='none'; bo.style.display='inline-block'; bd.style.display='inline-block';
+    dn.textContent=esc(u.name); db2.textContent='$'+(u.balance||0).toFixed(2);
+    document.getElementById('statBalance').textContent='$'+(u.balance||0).toFixed(2);
+    document.getElementById('statInvested').textContent='$'+(u.invested||0).toFixed(2);
+    document.getElementById('statReturns').textContent='$'+(u.returns||0).toFixed(2);
+    var pp=0; for(var i=0;i<db.deposits.length;i++) if(db.deposits[i].username===currentUser&&db.deposits[i].status==='pending') pp+=db.deposits[i].amount;
+    document.getElementById('statPending').textContent='$'+pp.toFixed(2);
+    document.getElementById('referralLink').value=window.location.origin+window.location.pathname+'?ref='+(u.refCode||currentUser);
+    renderDeposits(); renderTransactions(); renderReferrals(); renderPlans();
+  } else {
+    d.classList.add('hidden'); g.classList.remove('hidden'); bl.style.display='inline-block'; br.style.display='inline-block';
+    bo.style.display='none'; bd.style.display='none'; dn.textContent='Guest'; db2.textContent='$0.00';
+  }
+}
+
+function switchTab(t) {
+  var m={ invest:'tabInvest', deposits:'tabDeposits', transactions:'tabTransactions', referrals:'tabReferrals' };
+  for(var k in m){ var el=document.getElementById(m[k]); if(el)el.classList.toggle('hidden',k!==t); }
+  var tabs=document.querySelectorAll('.tabs .tab');
+  for(var i=0;i<tabs.length;i++) tabs[i].classList.toggle('active',tabs[i].textContent.trim().toLowerCase()===t||(t==='invest'&&tabs[i].textContent.trim()==='Invest'));
+}
+
+function renderDeposits(){
+  var list=document.getElementById('depositList'), items=[];
+  for(var i=db.deposits.length-1;i>=0;i--) if(db.deposits[i].username===currentUser) items.push(db.deposits[i]);
+  if(!items.length){ list.innerHTML='<p style="color:#8892b0">None yet.</p>'; return; }
+  var h='<table><thead><tr><th>Amount</th><th>Ref</th><th>Status</th><th>Date</th></tr></thead><tbody>';
+  for(var j=0;j<items.length;j++){ var d=items[j]; h+='<tr><td class="amount">$'+(d.amount||0).toFixed(2)+'</td><td><small>'+esc(d.reference||'')+'</small></td><td class="status-'+(d.status||'pending')+'">'+esc(d.status||'pending')+'</td><td><small>'+esc(new Date(d.createdAt).toLocaleDateString())+'</small></td></tr>'; }
+  h+='</tbody></table>'; list.innerHTML=h;
+}
+
+function renderTransactions(){
+  var list=document.getElementById('transactionList'), items=[];
+  for(var i=db.transactions.length-1;i>=0;i--) if(db.transactions[i].username===currentUser) items.push(db.transactions[i]);
+  if(!items.length){ list.innerHTML='<p style="color:#8892b0">None yet.</p>'; return; }
+  var h='<table><thead><tr><th>Type</th><th>Amount</th><th>Desc</th><th>Date</th></tr></thead><tbody>';
+  for(var j=0;j<items.length;j++){ var t=items[j]; h+='<tr><td>'+esc(t.type)+'</td><td class="amount">$'+(t.amount||0).toFixed(2)+'</td><td><small>'+esc(t.description||'')+'</small></td><td><small>'+esc(new Date(t.createdAt).toLocaleDateString())+'</small></td></tr>'; }
+  h+='</tbody></table>'; list.innerHTML=h;
+}
+
+function renderReferrals(){
+  var stats=document.getElementById('referralStats'), items=[];
+  for(var i=0;i<db.referrals.length;i++) if(db.referrals[i].from===currentUser) items.push(db.referrals[i]);
+  if(!items.length){ stats.innerHTML='<p style="color:#8892b0">No referrals.</p>'; return; }
+  var h='<table><thead><tr><th>User</th><th>Bonus</th><th>Date</th></tr></thead><tbody>';
+  for(var j=0;j<items.length;j++){ var r=items[j]; h+='<tr><td>'+esc(r.user)+'</td><td class="amount">$'+(r.bonus||0).toFixed(2)+'</td><td><small>'+esc(new Date(r.createdAt).toLocaleDateString())+'</small></td></tr>'; }
+  h+='</tbody></table>'; stats.innerHTML=h;
+}
+
+function renderPlans(){
+  var container=document.getElementById('investmentPlans');
+  var plans=[{n:'Starter',min:50,max:500,roi:5},{n:'Silver',min:500,max:5000,roi:10},{n:'Gold',min:5000,max:50000,roi:20},{n:'Diamond',min:50000,max:500000,roi:35}];
+  var u=db.users[currentUser]; var bal=u?u.balance:0;
+  var h='<div class="admin-grid">';
+  for(var i=0;i<plans.length;i++){
+    var p=plans[i], ok=bal>=p.min;
+    h+='<div class="card" style="text-align:center"><h3 style="color:#fff;margin-bottom:10px">'+esc(p.n)+'</h3><p style="color:#00d4aa;font-size:24px;font-weight:700">'+p.roi+'%</p><p style="color:#8892b0;margin:10px 0">$'+p.min.toLocaleString()+' – $'+p.max.toLocaleString()+'</p><button class="btn btn-sm" '+(ok?'onclick="invest(\''+esc(p.n)+'\','+p.min+','+p.max+','+p.roi+')"':'disabled style="opacity:.5"')+'>'+(ok?'Invest':'Insufficient')+'</button></div>';
+  }
+  h+='</div>'; container.innerHTML=h;
+}
+
+function invest(pn,min,max,roi){
+  var amt=parseFloat(prompt('Amount ($'+min+'–$'+max+'):'));
+  if(!amt||amt<min||amt>max) return toast('Invalid amount','error');
+  var u=db.users[currentUser]; if(!u||(u.balance||0)<amt) return toast('Insufficient balance','error');
+  u.balance-=amt; u.invested=(u.invested||0)+amt;
+  db.investments.push({ username:currentUser, plan:pn, amount:amt, roi:roi, status:'active', createdAt:new Date().toISOString() });
+  db.transactions.push({ username:currentUser, type:'investment', amount:amt, description:'Invested in '+pn, createdAt:new Date().toISOString() });
+  saveDB(); refreshUI(); toast('Invested $'+amt.toFixed(2)+' in '+pn,'success');
+}
+
+function copyReferral(){
+  var inp=document.getElementById('referralLink'); inp.select();
+  navigator.clipboard.writeText(inp.value).then(function(){ toast('Copied!','info'); }).catch(function(){ toast('Copy failed','error'); });
+}
+
+// ============================================================
+// ADMIN
+// ============================================================
+function adminLogin(){
+  var u=document.getElementById('adminUser').value.trim(), p=document.getElementById('adminPass').value.trim(), e=document.getElementById('adminError');
+  if(u==='admin'&&p==='admin123'){
+    document.getElementById('adminLoginForm').classList.add('hidden');
+    document.getElementById('adminPanel').classList.remove('hidden');
+    document.getElementById('paystackMode').value=db.settings.paystackMode||'test';
+    document.getElementById('testPublicKey').value=db.settings.testPublicKey||'';
+    document.getElementById('testSecretKey').value=db.settings.testSecretKey||'';
+    document.getElementById('livePublicKey').value=db.settings.livePublicKey||'';
+    document.getElementById('liveSecretKey').value=db.settings.liveSecretKey||'';
+    renderAdminDeposits(); renderAdminUsers(); e.textContent='';
+  } else { e.textContent='Invalid admin credentials.'; }
+}
+
+function switchAdminTab(t){
+  var m={ manage:'adminManage', settings:'adminSettings', users:'adminUsers' };
+  for(var k in m){ var el=document.getElementById(m[k]); if(el)el.classList.toggle('hidden',k!==t); }
+  var tabs=document.querySelectorAll('#adminModal .tabs .tab');
+  for(var i=0;i<tabs.length;i++) tabs[i].classList.toggle('active',tabs[i].textContent.trim().toLowerCase()===t);
+}
+
+function renderAdminDeposits(){
+  var c=document.getElementById('adminDeposits'), items=[];
+  for(var i=db.deposits.length-1;i>=0;i--) if(db.deposits[i].status==='pending') items.push(db.deposits[i]);
+  if(!items.length){ c.innerHTML='<p style="color:#8892b0">No pending deposits.</p>'; return; }
+  var h='<table><thead><tr><th>User</th><th>Amount</th><th>Ref</th><th>Actions</th></tr></thead><tbody>';
+  for(var j=0;j<items.length;j++){ var d=items[j];
+    h+='<tr><td>'+esc(d.username)+'</td><td class="amount">$'+(d.amount||0).toFixed(2)+'</td><td><small>'+esc(d.reference||'')+'</small></td>';
+    h+='<td><button class="btn btn-sm" onclick="adminApprove(\''+esc(d.username)+'\','+j+')">Approve</button> <button class="btn btn-sm btn-danger" onclick="adminDecline(\''+esc(d.username)+'\','+j+')">Decline</button></td></tr>';
+  }
+  h+='</tbody></table>'; c.innerHTML=h;
+}
+
+function adminApprove(user,idx){
+  var items=[]; for(var i=0;i<db.deposits.length;i++) if(db.deposits[i].status==='pending') items.push(i);
+  if(!items[idx]) return; var d=db.deposits[items[idx]]; d.status='approved';
+  if(db.users[d.username]) db.users[d.username].balance=(db.users[d.username].balance||0)+d.amount;
+  saveDB(); renderAdminDeposits(); refreshUI(); toast('Approved','success');
+}
+
+function adminDecline(user,idx){
+  var items=[]; for(var i=0;i<db.deposits.length;i++) if(db.deposits[i].status==='pending') items.push(i);
+  if(!items[idx]) return; db.deposits[items[idx]].status='declined';
+  saveDB(); renderAdminDeposits(); toast('Declined','info');
+}
+
+function renderAdminUsers(){
+  var c=document.getElementById('adminUserList'), names=Object.keys(db.users);
+  if(!names.length){ c.innerHTML='<p style="color:#8892b0">No users.</p>'; return; }
+  var h='<table><thead><tr><th>Username</th><th>Name</th><th>Balance</th><th>Actions</th></tr></thead><tbody>';
+  for(var i=0;i<names.length;i++){ var u=db.users[names[i]];
+    h+='<tr><td>'+esc(names[i])+'</td><td>'+esc(u.name)+'</td><td class="amount">$'+(u.balance||0).toFixed(2)+'</td>';
+    h+='<td><button class="btn btn-sm btn-danger" onclick="adminDeleteUser(\''+esc(names[i])+'\')">Delete</button></td></tr>';
+  }
+  h+='</tbody></table>'; c.innerHTML=h;
+}
+
+function adminDeleteUser(u){
+  if(!confirm('Delete '+u+'?')) return; delete db.users[u]; saveDB(); renderAdminUsers(); refreshUI(); toast('Deleted','info');
+}
+
+function saveAdminSettings(){
+  db.settings.paystackMode=document.getElementById('paystackMode').value;
+  db.settings.testPublicKey=document.getElementById('testPublicKey').value.trim();
+  db.settings.testSecretKey=document.getElementById('testSecretKey').value.trim();
+  db.settings.livePublicKey=document.getElementById('livePublicKey').value.trim();
+  db.settings.liveSecretKey=document.getElementById('liveSecretKey').value.trim();
+  saveDB();
+  document.getElementById('settingsMsg').textContent='✓ Saved!';
+  setTimeout(function(){ document.getElementById('settingsMsg').textContent=''; },2000);
+  toast('Settings saved','success');
+}
+
+// ============================================================
+// KEYBOARD SHORTCUT — Ctrl+Shift+A for Admin
+// ============================================================
+document.addEventListener('keydown',function(e){
+  if(e.ctrlKey&&e.shiftKey&&(e.key==='A'||e.key==='a')){
+    e.preventDefault();
+    document.getElementById('adminError').textContent='';
+    document.getElementById('adminLoginForm').classList.remove('hidden');
+    document.getElementById('adminPanel').classList.add('hidden');
+    document.getElementById('adminModal').classList.remove('hidden');
+  }
+});
+
+// ============================================================
+// INIT
+// ============================================================
+(function(){
+  var p=new URLSearchParams(window.location.search), ref=p.get('ref');
+  if(ref) document.getElementById('regReferral').value=ref;
+  refreshUI();
+})();
+</script>
+</body>
+</html>
